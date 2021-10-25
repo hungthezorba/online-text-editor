@@ -1,0 +1,23 @@
+[    
+    {
+        "id": "1",
+        "name": "Unitiled Document",
+        "createdAt": "1635146982424",
+        "updatedAt": "1635146996065",
+        "content": ""
+    },
+    {
+        "id": "2",
+        "name": "Useless document",
+        "createdAt": "1635146982424",
+        "updatedAt": "1635146996065",
+        "content": ""
+    },
+    {
+        "id": "3",
+        "name": "Assignment Stuff",
+        "createdAt": "1635146982424",
+        "updatedAt": "1635146996065",
+        "content": ""
+    }
+]
