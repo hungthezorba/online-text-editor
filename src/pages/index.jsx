@@ -1,4 +1,4 @@
-import Home from './Home';
+import Document from './Document';
 
 
-export {Home};
+export {Document};
