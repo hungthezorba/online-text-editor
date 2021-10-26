@@ -17,6 +17,7 @@ export const documentSlice = createSlice({
       currentSelectedDocument: {
         id: '',
         title: '',
+        content: ''
       },
       loading: false
   },
@@ -27,14 +28,15 @@ export const documentSlice = createSlice({
     selectDocument: (state, action) => {
         state.currentSelectedDocument = state.documents.find((doc) => {return doc.id == action.payload})  
     },
-    addDocument: (state) => {
-        
+    addDocument: (state, action) => {
+        state.documents.push(action.payload);
     },
     updateDocumentsDB: (state, action) => {
         const doc = state.documents.find((doc) => {return doc.id == action.payload.id})
         if (doc) {
-            doc.title = action.payload.title;
+            Object.assign(doc, action.payload);
         }
+        console.log(doc);
     }
   },
   extraReducers: {

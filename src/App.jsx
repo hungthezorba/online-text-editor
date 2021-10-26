@@ -25,17 +25,8 @@ function App() {
       <GridItem colSpan={3}>
         <Switch>
           <Route exact path="/">
-            <Box p={10}>
-                <p>Welcome to online text editor. Add a new document to begin writting...</p>
-            </Box>
+            <Document/>
           </Route>
-          {documents?
-          <Route path="/:documentId" render={({match}) => (
-            <Document document={documents.find((doc) => {return doc.id == match.params.documentId})}/>
-          )} />
-          :
-          null
-          }
         </Switch>
       </GridItem>
       <GridItem colSpan={1}>

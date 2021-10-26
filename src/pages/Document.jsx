@@ -3,7 +3,7 @@ import { Box, Textarea } from '@chakra-ui/react';
 import {ContentState, Editor, EditorState} from 'draft-js';
 import { useSelector, useDispatch } from 'react-redux';
 import { add, clear } from '../features/keyComp/keyCommandSlice';
-import { selectDocument, updateCurrentSelectedDocument, updateDocumentsDB } from '../features/document/documentSlice';
+import { addDocument, selectDocument, updateCurrentSelectedDocument, updateDocumentsDB } from '../features/document/documentSlice';
 
 const SAVE_KEYBIND_MACOS = 'Metas';
 const SAVE_KEYBIND_WINDOWS = 'Controls';
@@ -14,7 +14,7 @@ function Document (props) {
 
     const dispatch  = useDispatch();
 
-    const [content, setContent] = React.useState(EditorState.createWithContent(ContentState.createFromText('')));
+    const [content, setContent] = React.useState(EditorState.createWithContent(ContentState.createFromText(currentSelectedDocument.content)));
     const {keyCommand} = useSelector((state) => state.keyCommand);   
 
     React.useEffect(() => {
@@ -41,25 +41,35 @@ function Document (props) {
     }, [keyCommand])
 
     React.useEffect(() => {
-        let contentValue = content.getCurrentContent().getPlainText()
+        let contentValue = content.getCurrentContent().getPlainText();
+        if (documents?.length == 0 && contentValue != '') {
+            let newDoc = {
+                id: Date.now(),
+                title: 'Untitled Document',
+                content: contentValue
+            }
+            dispatch(addDocument(newDoc))
+            dispatch(selectDocument(newDoc.id))
+        }
         // dispatch(updateCurrentSelectedDocument(contentValue));
-        if (props.document) {
+        if (currentSelectedDocument) {
             dispatch(updateDocumentsDB({
-                id: props.document.id,
-                title: contentValue
+                id: currentSelectedDocument.id,
+                content: contentValue,
             }))
+            console.log();
         }        
     }, [content])
 
     React.useEffect(() => {
-    if (props.document?.title) {
-            setContent(EditorState.createWithContent(ContentState.createFromText(props.document?.title)))
+    if (currentSelectedDocument) {
+            setContent(EditorState.createWithContent(ContentState.createFromText(currentSelectedDocument.content)))
         }
     },[currentSelectedDocument.id])
 
     return (
         <Box p={10}>
-            <Editor editorState={content} onChange={(e) => setContent(e)}/>    
+            <Editor placeholder={content != '' && documents.length == 0 && 'No document found. Type something down here...'} editorState={content} onChange={(e) => setContent(e)}/>    
         </Box>
     )
 }

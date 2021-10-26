@@ -4,12 +4,26 @@ import { Button, Box, Container, Link } from '@chakra-ui/react'
 import { colors } from '../../constants';
 import { useSelector, useDispatch } from 'react-redux';
 import { Link as RRLink, useParams} from 'react-router-dom';
-import { selectDocument } from '../../features/document/documentSlice';
+import { addDocument, selectDocument } from '../../features/document/documentSlice';
 
 function Nav() {
     
     const {documents, currentSelectedDocument} = useSelector((state) => state.documents);
     const dispatch = useDispatch();
+
+    React.useEffect(() => {
+        console.log(documents);
+    }, [documents])
+
+    function addNewDoc()  {
+        let newDoc = {
+            id: Date.now(),
+            title: 'Untitled Document',
+            content: ''
+        }
+        dispatch(addDocument(newDoc))
+        dispatch(selectDocument(newDoc.id));
+    }
 
     return (
         <Box position={'relative'} h={'100%'} boxShadow={'5px 0px 0px rgba(0,0,0,0.25)'}>
@@ -20,25 +34,20 @@ function Nav() {
             </Box>
             <Box mt={8}>
                 {documents?.map(d => (
-                    <Link
-                        as={RRLink}
-                        to={`${d.id}`}
-                        key={d.id}
-                        onClick={() => dispatch(selectDocument(d.id))}
-                    >
                         <Box
+                            key={d.id}
                             cursor={'pointer'} 
+                            onClick={() => dispatch(selectDocument(d.id))}
                             _hover={{backgroundColor: colors.GRAY_LIGHT}} 
                             backgroundColor={d.id == currentSelectedDocument.id? colors.GRAY_LIGHTER : colors.GRAY_LIGHTEST} 
                             p={13} 
                         >
                         <p>{d.title}</p>
                         </Box>
-                    </Link>
                 ))}
             </Box>
             <Box mt={5}>
-                <Button>
+                <Button onClick={() => addNewDoc()}>
                     Add new document
                 </Button>
             </Box>
