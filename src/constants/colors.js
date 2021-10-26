@@ -1,4 +1,4 @@
-export const colors = {
+const colors = {
     'GRAY_LIGHTEST': '#FFFFFF',
     'GRAY_LIGHTER': '#EBEBEB',
     'GRAY_LIGHT': '#CCCCCC',
@@ -7,3 +7,5 @@ export const colors = {
     'GRAY_DARKER': '#5C5C5C',
     'GRAY_DARKEST': '#3D3D3D'
 }
+
+export default colors;

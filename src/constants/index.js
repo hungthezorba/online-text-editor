@@ -1,3 +1,3 @@
-import { colors } from "./colors/colors";
-
-export {colors}
+import colors from "./colors";
+import apis from './apis';
+export {colors, apis}
