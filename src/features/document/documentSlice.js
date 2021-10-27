@@ -49,7 +49,8 @@ export const documentSlice = createSlice({
 export const {updateCurrentSelectedDocument, selectDocument, updateDocumentOnClient} = documentSlice.actions
 
 export async function addDocumentThunk(dispatch, doc) {
-    await documentModel.saveDocument(doc);
+    let rev = await documentModel.saveDocument(doc);
+    Object.assign(doc,{_rev: rev});
     dispatch(documentSlice.actions.addDocument(doc));
     dispatch(selectDocument(doc._id));
 }

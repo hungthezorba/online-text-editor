@@ -8,11 +8,12 @@ const getAllDocuments = async () => {
 }
 
 const saveDocument =  async (doc) => {
+    console.log(doc);
     let rs = await pouchdb.put(doc, {
         force: true
     })
-    if (rs.ok) {
-        return true;
+    if (rs) {
+        return rs.rev;
     }
     return false;
 }
