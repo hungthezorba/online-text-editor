@@ -1,13 +1,21 @@
 import React from 'react'
 import ReactDOM from 'react-dom'
 import './index.css'
-import App from './App'
+import App from './App.jsx'
 import { Provider } from 'react-redux'
 import { store } from './app/store'
-import { ChakraProvider } from "@chakra-ui/react"
+import { ChakraProvider, extendTheme } from "@chakra-ui/react"
+import {Fonts} from "./Fonts"
+const theme = extendTheme({
+  fonts: {
+    heading: "Open Sans",
+    body: "Space Mono",
+  },
+})
+
 ReactDOM.render(
   <React.StrictMode>
-    <ChakraProvider>
+    <ChakraProvider theme={theme}>
       <Provider store={store}>
         <App />    
       </Provider>

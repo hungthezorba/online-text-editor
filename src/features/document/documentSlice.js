@@ -5,9 +5,9 @@ import { documentModel } from '../../model';
 export const getAllDocuments = createAsyncThunk(
     'documents/getAllDocuments',
     async () => {
-        let documents = documentModel.getAllDocuments();
-        return documents;
-    }
+            let documents = await documentModel.getAllDocuments();
+            return documents;
+       }
 )
 
 export const documentSlice = createSlice({
@@ -15,7 +15,7 @@ export const documentSlice = createSlice({
   initialState: {
       documents: [],
       currentSelectedDocument: {
-        id: '',
+        _id: '',
         title: '',
         content: ''
       },
@@ -23,20 +23,20 @@ export const documentSlice = createSlice({
   },
   reducers: {
     updateCurrentSelectedDocument: (state, action) => {
-        state.currentSelectedDocument.title = action.payload
+        state.currentSelectedDocument = Object.assign(state.currentSelectedDocument, action.payload);
     },
     selectDocument: (state, action) => {
-        state.currentSelectedDocument = state.documents.find((doc) => {return doc.id == action.payload})  
+        state.currentSelectedDocument = state.documents.find((doc) => {return doc._id == action.payload}) 
     },
     addDocument: (state, action) => {
-        state.documents.push(action.payload);
+        state.documents.push(action.payload); 
     },
-    updateDocumentsDB: (state, action) => {
-        const doc = state.documents.find((doc) => {return doc.id == action.payload.id})
+    updateDocumentOnClient: (state, action) => {
+        const doc = state.documents.find((doc) => {return doc._id == action.payload._id})
         if (doc) {
             Object.assign(doc, action.payload);
+            state.currentSelectedDocument = Object.assign(state.currentSelectedDocument, action.payload);
         }
-        console.log(doc);
     }
   },
   extraReducers: {
@@ -46,6 +46,12 @@ export const documentSlice = createSlice({
   }
 })
 
-export const {updateCurrentSelectedDocument, addDocument, selectDocument, updateDocumentsDB} = documentSlice.actions
+export const {updateCurrentSelectedDocument, selectDocument, updateDocumentOnClient} = documentSlice.actions
+
+export async function addDocumentThunk(dispatch, doc) {
+    await documentModel.saveDocument(doc);
+    dispatch(documentSlice.actions.addDocument(doc));
+    dispatch(selectDocument(doc._id));
+}
 
 export default documentSlice.reducer

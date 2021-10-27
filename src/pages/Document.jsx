@@ -3,19 +3,37 @@ import { Box, Textarea } from '@chakra-ui/react';
 import {ContentState, Editor, EditorState} from 'draft-js';
 import { useSelector, useDispatch } from 'react-redux';
 import { add, clear } from '../features/keyComp/keyCommandSlice';
-import { addDocument, selectDocument, updateCurrentSelectedDocument, updateDocumentsDB } from '../features/document/documentSlice';
+import { updateDocumentOnClient, addDocumentThunk, updateCurrentSelectedDocument } from '../features/document/documentSlice';
+import { documentModel } from '../model';
+import { keyBind, saveStatus } from '../constants';
+import { SaveStatus } from '../components';
 
-const SAVE_KEYBIND_MACOS = 'Metas';
-const SAVE_KEYBIND_WINDOWS = 'Controls';
+async function assignSaveDoc(dispatch, currentSelectedDocument, contentValue) {
+
+    let dbResult = await documentModel.saveDocument({
+        _rev: currentSelectedDocument._rev,
+        _id: currentSelectedDocument._id,
+        title: currentSelectedDocument.title,
+        content: contentValue
+    })
+    if (dbResult) {
+        dispatch(updateDocumentOnClient({
+            _id: currentSelectedDocument._id,
+            content: contentValue
+        }))
+    } 
+}
 
 function Document (props) {
 
     const {currentSelectedDocument, documents} = useSelector(state => state.documents);
-
+    const { isAutoSave } = useSelector(state => state.isAutoSave);
     const dispatch  = useDispatch();
 
     const [content, setContent] = React.useState(EditorState.createWithContent(ContentState.createFromText(currentSelectedDocument.content)));
-    const {keyCommand} = useSelector((state) => state.keyCommand);   
+    const {keyCommand} = useSelector((state) => state.keyCommand);
+    const [isSaving, setIsSaving] = React.useState(false);
+    const [saveInterval, setSaveInterval] = React.useState();
 
     React.useEffect(() => {
         document.addEventListener('keydown', (e) => {
@@ -28,48 +46,100 @@ function Document (props) {
         document.addEventListener('keyup', (e) => {
             dispatch(clear());
         })
-        if (props.document?.id) {
-            dispatch(selectDocument(props.document))
-        }
     }, [])
     
     React.useEffect(() => {
-        if (keyCommand.includes(SAVE_KEYBIND_MACOS) || keyCommand.includes(SAVE_KEYBIND_WINDOWS)) {
-            console.log('Document saved');
+        let contentValue = content.getCurrentContent().getPlainText();
+        if (keyCommand.includes(keyBind.SAVE_MACOS) || keyCommand.includes(keyBind.SAVE_WINDOWS)) {
+            if (saveInterval) {
+                clearTimeout(saveInterval);
+            }
+            setIsSaving(true)
+            setSaveInterval(setTimeout(() => {
+                setIsSaving(false);
+                assignSaveDoc(dispatch, currentSelectedDocument, contentValue);
+            }, 2000))
+           
             dispatch(clear());
         }
     }, [keyCommand])
 
     React.useEffect(() => {
         let contentValue = content.getCurrentContent().getPlainText();
+
         if (documents?.length == 0 && contentValue != '') {
             let newDoc = {
-                id: Date.now(),
+                _id: Date.now().toString(),
                 title: 'Untitled Document',
                 content: contentValue
             }
-            dispatch(addDocument(newDoc))
-            dispatch(selectDocument(newDoc.id))
+            addDocumentThunk(dispatch, newDoc);
         }
-        // dispatch(updateCurrentSelectedDocument(contentValue));
-        if (currentSelectedDocument) {
-            dispatch(updateDocumentsDB({
-                id: currentSelectedDocument.id,
-                content: contentValue,
-            }))
-            console.log();
-        }        
-    }, [content])
+        // Auto Save
+        if (currentSelectedDocument._id != '' && isAutoSave) {
+            if (saveInterval) {
+                clearTimeout(saveInterval);
+            }
+            setIsSaving(true)
+            setSaveInterval(setTimeout(() => {
+                assignSaveDoc(dispatch, currentSelectedDocument, contentValue)
+                .then((res) => {
+                    setIsSaving(false);
+                })
+            }, 2000))
+        }
+    }, [content.getCurrentContent().getPlainText()])
 
     React.useEffect(() => {
-    if (currentSelectedDocument) {
-            setContent(EditorState.createWithContent(ContentState.createFromText(currentSelectedDocument.content)))
+        if (currentSelectedDocument) {
+            setContent(EditorState.moveFocusToEnd(EditorState.createWithContent(ContentState.createFromText(currentSelectedDocument.content))))
         }
-    },[currentSelectedDocument.id])
+    },[currentSelectedDocument._id])
 
     return (
-        <Box p={10}>
-            <Editor placeholder={content != '' && documents.length == 0 && 'No document found. Type something down here...'} editorState={content} onChange={(e) => setContent(e)}/>    
+        <Box p={10}>                       
+            {documents?.length == 0?
+                <Editor 
+                    placeholder={documents?.length == 0 && 'No document found. Type something down here...' }
+                    editorState={content} 
+                    onChange={(e) => setContent(e)} />    
+                :
+                <>
+                {currentSelectedDocument._id != ''?
+                <Box>
+                    {isAutoSave?
+                        <>
+                            {isSaving?
+                                <SaveStatus status={saveStatus.SAVING}/>
+                                :
+                                <SaveStatus status={saveStatus.UP_TO_DATE}/>
+                            }
+                        </>
+                        :
+                        <>
+                            {isSaving?
+                                <SaveStatus status={saveStatus.SAVING}/>
+                                :
+                                <>
+                                {currentSelectedDocument.content == content.getCurrentContent().getPlainText()?
+                                <SaveStatus status={saveStatus.UP_TO_DATE}/>
+                                    :
+                                <SaveStatus status={saveStatus.NOT_SAVED}/>
+                                }
+                                </>
+                            }
+                        </>   
+                    }                    
+                    <Editor
+                        editorState={content} 
+                        onChange={(e) => setContent(e)}
+                    />    
+                    </Box>
+                    :
+                    <p>Select a document to edit or create a new one</p>                
+                }
+                </>
+            }
         </Box>
     )
 }

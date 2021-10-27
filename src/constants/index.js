@@ -1,3 +1,5 @@
 import colors from "./colors";
 import apis from './apis';
-export {colors, apis}
+import keyBind from "./keyBind";
+import saveStatus from "./saveStatus";
+export {colors, apis, keyBind, saveStatus }

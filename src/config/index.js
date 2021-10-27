@@ -1,3 +1,5 @@
 import localStorage from "./localStorage";
+import DBOpenRequest from "./indexDB";
+import pouchdb from "./pouchdb";
 
-export {localStorage};
+export {localStorage, DBOpenRequest, pouchdb};

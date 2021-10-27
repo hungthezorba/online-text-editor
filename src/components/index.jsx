@@ -1,3 +1,3 @@
 import Nav from './Nav/Nav';
-
-export {Nav};
+import SaveStatus from './SaveStatus/SaveStatus';
+export {Nav, SaveStatus};
